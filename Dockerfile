@@ -1,6 +1,6 @@
 FROM debian:stretch-slim
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
     bash \
     wget \
     make \
@@ -8,10 +8,15 @@ RUN apt-get update && apt-get install -y \
     tar \
     autoconf \
     libldns-dev \
+    libevent-2.0 \
     libevent-dev \
+    ca-certificates \
     musl-dev \
+    libc-dev \
+    libexpat1 \
     libexpat1-dev \
-    file 
+    file && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV UNBOUND_VERSION 1.6.7
 ENV UNBOUND_SHA256 4e7bd43d827004c6d51bef73adf941798e4588bdb40de5e79d89034d69751c9f
@@ -27,21 +32,22 @@ RUN set -x && \
     cd unbound-${UNBOUND_VERSION} && \
     groupadd unbound && \
     useradd -g unbound -s /etc -d /dev/null unbound && \
-    ./configure --prefix=/opt/unbound --with-pthreads \
+    ./configure --disable-dependency-tracking --prefix=/opt/unbound --with-pthreads \
     --with-username=unbound --with-libevent && \
     make install && \
     mv /opt/unbound/etc/unbound/unbound.conf /opt/unbound/etc/unbound/unbound.conf.example && \
     rm -fr /opt/unbound/share/man && \
     rm -fr /tmp/* /var/tmp/*
 
-COPY unbound.sh /tmp
+COPY unbound.sh /opt
+RUN chmod 777 /opt/unbound.sh
+
 COPY certificate.crt /opt/unbound/etc/unbound/
 COPY private.key /opt/unbound/etc/unbound/
 
-RUN /bin/bash /tmp/unbound.sh
-run rm -f /tmp/unbound.sh
+#RUN /bin/bash /opt/unbound.sh
 
-EXPOSE 80/tcp
 EXPOSE 853/tcp
 
-#ENTRYPOINT /opt/unbound/sbin/unbound -d -vv
+#CMD /opt/unbound/sbin/unbound -vv
+CMD ["/opt/unbound.sh"]
