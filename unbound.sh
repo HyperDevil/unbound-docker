@@ -9,7 +9,7 @@ server:
   verbosity: 1
   chroot: "/opt/unbound/etc/unbound"
   pidfile: "/opt/unbound/etc/unbound.pid"
-  logfile: "/opt/unbound/etc/unbound.log"
+  logfile: "/opt/unbound/etc/unbound/unbound.log"
   ssl-service-key: "/opt/unbound/etc/unbound/private.key"
   ssl-service-pem: "/opt/unbound/etc/unbound/certificate.crt"
   auto-trust-anchor-file: "/opt/unbound/etc/unbound/var/root.key"
@@ -34,5 +34,7 @@ EOT
 mkdir -p -m 700 /opt/unbound/etc/unbound/var
 chown unbound:unbound /opt/unbound/etc/unbound/var
 /opt/unbound/sbin/unbound-anchor -a "/opt/unbound/etc/unbound/var/root.key"
+touch /opt/unbound/etc/unbound/unbound.log
+chown unbound:unbound /opt/unbound/etc/unbound/unbound.log
 
 exec /opt/unbound/sbin/unbound -d -c "/opt/unbound/etc/unbound/unbound.conf"
